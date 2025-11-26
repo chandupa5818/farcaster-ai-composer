@@ -102,12 +102,13 @@ const regenerateText = async (topic, style) => {
 };
 
 const fetchImage = async (searchTerm) => {
-  const safeSearchTerm = searchTerm || "abstract art"; // Fallback if empty
+  const safeSearchTerm = searchTerm || "abstract art"; 
   const encodedPrompt = encodeURIComponent(`professional photography, realistic, 4k, ${safeSearchTerm}`);
-  const seed = Math.floor(Math.random() * 100000); // Larger seed range
+  const seed = Math.floor(Math.random() * 100000); 
   
-  // 🔴 FIX: Using the SAME 1024x1024 URL for both preview and full to ensure consistency.
-  // Changing resolution on AI models often changes the image composition entirely.
+  // 🔴 FIX: Strict Consistency
+  // We use the EXACT same URL for both preview and full size.
+  // This guarantees the image you see is the image you post.
   const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&seed=${seed}&width=1024&height=1024&model=flux`;
 
   return {
