@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CastGen AI</title>
     
-    <!-- Links the manifest so Farcaster knows it's an app -->
+    <!-- 1. This connects your Manifest file -->
     <link rel="manifest" href="/manifest.json" />
     
-    <!-- Preview Metadata -->
+    <!-- 2. PREVIEW DATA (Social Share Image) -->
     <meta property="og:title" content="CastGen AI" />
     <meta property="og:description" content="Create viral Farcaster posts with AI." />
-    <meta property="og:image" content="[https://placehold.co/600x400/15171e/white?text=CastGen+AI](https://placehold.co/600x400/15171e/white?text=CastGen+AI)" />
+    <meta property="og:image" content="https://placehold.co/600x400/15171e/white?text=CastGen+AI" />
+    
+    <!-- 3. FARCASTER FRAME METADATA (Launch Button Configuration) -->
+    <meta name="fc:frame" content='{"version": "next", "imageUrl": "https://placehold.co/600x400/15171e/white?text=CastGen+AI", "button": {"title": "Launch App", "action": {"type": "launch_frame", "name": "CastGen AI", "url": "https://farcaster-ai-composer.vercel.app", "splashImageUrl": "https://placehold.co/200x200/15171e/white?text=Icon", "splashBackgroundColor": "#15171e"}}}' />
   </head>
   <body>
     <div id="root"></div>
