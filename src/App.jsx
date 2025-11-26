@@ -89,16 +89,22 @@ const regenerateText = async (topic, style) => {
   }
 };
 
-// 🔴 NEW IMAGE SYSTEM: Uses "LoremFlickr" for Real Photos (Stable & Free)
+// 🔴 NEW IMAGE SYSTEM: Uses "LoremFlickr" for Real Stock Photos (Free & No Key)
 const fetchImage = async (searchTerm) => {
-  const safeSearchTerm = searchTerm || "tech"; 
-  const seed = Math.floor(Math.random() * 100000); 
+  // Use a simple term like "tech", "nature", "cat" if the specific term fails
+  const safeSearchTerm = searchTerm || "technology";
   
-  // Uses LoremFlickr to get real photography based on the keyword.
-  // "lock" ensures the preview image is identical to the shared image.
-  const imageUrl = `https://loremflickr.com/800/600/${encodeURIComponent(safeSearchTerm)}?lock=${seed}`;
+  // Random number to "lock" the image so it doesn't change between preview and post
+  const lockId = Math.floor(Math.random() * 100000);
+  
+  // LoremFlickr URL: width/height/keywords
+  // We use 800x600 for a good social card size
+  const imageUrl = `https://loremflickr.com/800/600/${encodeURIComponent(safeSearchTerm)}?lock=${lockId}`;
 
-  return { preview: imageUrl, full: imageUrl };
+  return {
+    preview: imageUrl,
+    full: imageUrl
+  };
 };
 
 // --- Components ---
