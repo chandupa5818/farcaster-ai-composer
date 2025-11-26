@@ -2,7 +2,7 @@
   "name": "CastGen AI",
   "version": "1.0.0",
   "iconUrl": "https://placehold.co/512x512/purple/white?text=Icon",
-  "homeUrl": "https://YOUR-VERCEL-URL.vercel.app",
+  "homeUrl": "https://farcaster-ai-composer.vercel.app",
   "accountAssociation": {
     "header": "eyJmaWQiOjk3MzM1MiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDRGY2VmYjQ5RDA4NjdGMzA0ZEJEZDg2N2JiQzk2MzBhN2UxM2NGMUEifQ",
     "payload": "eyJkb21haW4iOiJmYXJjYXN0ZXItYWktY29tcG9zZXIudmVyY2VsLmFwcCJ9",
@@ -16,7 +16,7 @@
       "action": {
         "type": "launch_frame",
         "name": "CastGen AI",
-        "url": "https://farcaster-ai-composer.vercel.app/",
+        "url": "https://farcaster-ai-composer.vercel.app",
         "splashImageUrl": "https://placehold.co/200x200/15171e/white?text=Icon",
         "splashBackgroundColor": "#15171e"
       }
