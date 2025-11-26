@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import sdk from '@farcaster/frame-sdk'; // 🟢 Production SDK Enabled
+import sdk from '@farcaster/frame-sdk'; 
 import { Sparkles, Send, RefreshCw, Image as ImageIcon, Edit3, CheckCircle2, XCircle, Share2, Loader2, Camera, Link as LinkIcon, Upload, Wand2, Briefcase, Smile, Zap, Share, Trophy } from 'lucide-react';
 
 // --- Configuration ---
 
-// 🔴 YOUR API KEY IS HERE
 const apiKey = "AIzaSyCAVA0hN1rllMq8PP8-CxnF6I9DWDALIRE"; 
-
-const UNSPLASH_ACCESS_KEY = ""; 
 
 // --- API Helpers ---
 
@@ -17,19 +14,17 @@ const generateContentPlan = async (topic, style = 'unhinged') => {
     styleInstruction = "STYLE: Professional, crisp, engaging, proper grammar. Aim for a tech-thought-leader vibe. No slang.";
   } else if (style === 'funny') {
     styleInstruction = "STYLE: Witty, clever, and humorous. Make a joke related to the topic. Casual tone.";
-  } else { // unhinged
+  } else { 
     styleInstruction = "STYLE: Casual, human, maybe all lowercase, witty, slightly self-deprecating or absurd. Use internet slang. Chaos mode.";
   }
 
   const systemPrompt = `
     You are a legendary Farcaster user.
     CRITICAL: You MUST write about the specific "Topic" provided by the user.
-    
-    The user will give you a topic. You need to:
-    1. Write a draft post (max 280 chars) DIRECTLY RELATED to the topic.
+    1. Write a draft post (max 280 chars).
        - ${styleInstruction}
        - AVOID: Hashtags (unless ironic), corporate speak, "AI language".
-    2. Create 3 distinct SEARCH KEYWORDS to find photos for this post.
+    2. Create 3 distinct SEARCH KEYWORDS for images.
     
     Return ONLY valid JSON:
     {
@@ -64,20 +59,11 @@ const generateContentPlan = async (topic, style = 'unhinged') => {
 
 const regenerateText = async (topic, style) => {
   let stylePrompt = "";
-  if (style === 'professional') {
-    stylePrompt = "Write a professional, crisp, and engaging post. Use proper grammar.";
-  } else if (style === 'funny') {
-    stylePrompt = "Write a witty, clever, and humorous post.";
-  } else if (style === 'unhinged') {
-    stylePrompt = "Write a chaotic, lowercase, 'shitpost' style post.";
-  }
+  if (style === 'professional') stylePrompt = "Professional, crisp, engaging.";
+  else if (style === 'funny') stylePrompt = "Witty, clever, humorous.";
+  else stylePrompt = "Chaotic, lowercase, 'shitpost' style.";
 
-  const systemPrompt = `
-    Topic: ${topic}
-    Task: Write a single social media post (max 280 chars).
-    Style Guide: ${stylePrompt}
-    Return ONLY the plain text of the post.
-  `;
+  const systemPrompt = `Topic: ${topic}. Task: Write a single social media post (max 280 chars). Style: ${stylePrompt}. Return ONLY plain text.`;
 
   try {
     const response = await fetch(
@@ -91,30 +77,23 @@ const regenerateText = async (topic, style) => {
         }),
       }
     );
-
-    if (!response.ok) throw new Error("Failed to regenerate text");
+    if (!response.ok) throw new Error("Error");
     const data = await response.json();
     return data.candidates?.[0]?.content?.parts?.[0]?.text.trim();
   } catch (error) {
-    console.error("Regen Text Error:", error);
     return null;
   }
 };
 
 const fetchImage = async (searchTerm) => {
-  const safeSearchTerm = searchTerm || "abstract art"; 
+  const safeSearchTerm = searchTerm || "abstract"; 
   const encodedPrompt = encodeURIComponent(`professional photography, realistic, 4k, ${safeSearchTerm}`);
   const seed = Math.floor(Math.random() * 100000); 
   
-  // 🔴 FIX: Strict Consistency
-  // We use the EXACT same URL for both preview and full size.
-  // This guarantees the image you see is the image you post.
+  // STRICT CONSISTENCY: Same URL for preview and full size
   const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&seed=${seed}&width=1024&height=1024&model=flux`;
 
-  return {
-    preview: imageUrl,
-    full: imageUrl
-  };
+  return { preview: imageUrl, full: imageUrl };
 };
 
 // --- Components ---
@@ -174,29 +153,21 @@ export default function App() {
   const [customImage, setCustomImage] = useState(null); 
   const [selectedImgIndex, setSelectedImgIndex] = useState(0); 
   const [error, setError] = useState("");
-  
-  // Points System State
   const [points, setPoints] = useState(0);
-  
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     const load = async () => {
       try {
-        // 🟢 Production Ready: Calls sdk.actions.ready() to hide splash screen
+        // Call ready() to hide splash screen
         if (sdk && sdk.actions) { await sdk.actions.ready(); }
-      } catch (e) {
-        console.warn("Farcaster SDK not detected.", e);
-      }
+      } catch (e) { console.warn("SDK Error", e); }
     };
     
-    // Load Points from Local Storage
     const savedPoints = localStorage.getItem('castgen_points');
-    if (savedPoints) {
-        setPoints(parseInt(savedPoints));
-    }
+    if (savedPoints) setPoints(parseInt(savedPoints));
 
-    if (sdk && !isSDKLoaded) {
+    if (!isSDKLoaded) {
       setIsSDKLoaded(true);
       load();
     }
@@ -241,33 +212,32 @@ export default function App() {
 
   const handlePost = () => { 
       setStep("posting"); 
-      
-      // Award Points
       const newPoints = points + 10;
       setPoints(newPoints);
       localStorage.setItem('castgen_points', newPoints.toString());
-
       setTimeout(() => { setStep("success"); }, 1500); 
   };
 
-  // 🔴 FIXED: Uses 'embeds' parameter so image shows up as an attachment
   const openWarpcastComposer = () => {
     const encodedText = encodeURIComponent(postText);
     let composeUrl = `https://warpcast.com/~/compose?text=${encodedText}`;
 
-    // If it's a generated image (has a URL), add it as an embed
     if (selectedImgIndex !== 3) {
         const imgData = generatedImages[selectedImgIndex];
         if (imgData && imgData.full) {
-            // Add as an embed parameter
+            // Attach image as an embed
             composeUrl += `&embeds[]=${encodeURIComponent(imgData.full)}`;
         }
     } else {
-        // Custom image warning
-        alert("Since you used a custom photo, please attach it from your gallery when Warpcast opens!");
+        alert("For custom photos, please attach them from your gallery manually in the next step!");
     }
 
-    window.open(composeUrl, '_blank');
+    // Native Mobile Open
+    if (sdk && sdk.actions && sdk.actions.openUrl) {
+        sdk.actions.openUrl(composeUrl);
+    } else {
+        window.open(composeUrl, '_blank');
+    }
   };
 
   const copyTextToClipboard = () => { navigator.clipboard.writeText(postText); alert("Text copied!"); };
@@ -278,11 +248,15 @@ export default function App() {
     if (imgData && imgData.full) { navigator.clipboard.writeText(imgData.full); alert("Image URL copied!"); }
   };
 
-  // SHARE FEATURE
   const handleShareApp = async () => {
     const shareText = `I just made a post with CastGen AI! I have ${points} points! 🪄`;
     const shareUrl = window.location.href; 
-    if (navigator.share) {
+    
+    if (sdk && sdk.actions && sdk.actions.openUrl) {
+       const encodedShare = encodeURIComponent(shareText);
+       const encodedUrl = encodeURIComponent(shareUrl);
+       sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodedShare}&embeds[]=${encodedUrl}`);
+    } else if (navigator.share) {
       try { await navigator.share({ title: 'CastGen AI', text: shareText, url: shareUrl }); } catch (err) { console.log('Error sharing:', err); }
     } else {
       navigator.clipboard.writeText(shareUrl); alert("App link copied!");
@@ -301,14 +275,11 @@ export default function App() {
             <h1 className="font-bold text-lg tracking-tight">CastGen AI</h1>
           </div>
           <div className="flex gap-2 items-center">
-            {/* POINTS BADGE */}
             <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 mr-1">
-                <Trophy className="w-3.5 h-3.5" />
-                {points}
+                <Trophy className="w-3.5 h-3.5" /> {points}
             </div>
-
-            {step === 'input' && <button onClick={handleShareApp} className="p-2 hover:bg-slate-800 rounded-full transition-colors" title="Share App"><Share className="w-4 h-4 text-slate-400" /></button>}
-            {step !== 'input' && <button onClick={reset} className="p-2 hover:bg-slate-800 rounded-full transition-colors" title="Reset"><RefreshCw className="w-4 h-4 text-slate-400" /></button>}
+            {step === 'input' && <button onClick={handleShareApp} className="p-2 hover:bg-slate-800 rounded-full transition-colors"><Share className="w-4 h-4 text-slate-400" /></button>}
+            {step !== 'input' && <button onClick={reset} className="p-2 hover:bg-slate-800 rounded-full transition-colors"><RefreshCw className="w-4 h-4 text-slate-400" /></button>}
           </div>
         </header>
         <main className="flex-1 p-6 flex flex-col relative">
