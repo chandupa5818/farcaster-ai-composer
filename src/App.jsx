@@ -1,15 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-// 🟢 FOR PRODUCTION: Uncomment the line below after running `npm install @farcaster/frame-sdk`
-// import sdk from '@farcaster/frame-sdk';
+import sdk from '@farcaster/frame-sdk'; // 🟢 Production SDK Enabled
 import { Sparkles, Send, RefreshCw, Image as ImageIcon, Edit3, CheckCircle2, XCircle, Share2, Loader2, Camera, Link as LinkIcon, Upload, Wand2, Briefcase, Smile, Zap, Share, Trophy } from 'lucide-react';
-
-// --- MOCK SDK (For Preview Only) ---
-// 🔴 Remove this const when you uncomment the import above!
-const sdk = {
-  actions: {
-    ready: () => console.log("Farcaster SDK: Ready (Mock Mode)")
-  }
-};
 
 // --- Configuration ---
 
@@ -186,6 +177,7 @@ export default function App() {
   useEffect(() => {
     const load = async () => {
       try {
+        // 🟢 Production Ready: Calls sdk.actions.ready() to hide splash screen
         if (sdk && sdk.actions) { await sdk.actions.ready(); }
       } catch (e) {
         console.warn("Farcaster SDK not detected.", e);
