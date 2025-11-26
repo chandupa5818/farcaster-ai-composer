@@ -34,8 +34,9 @@ const generateContentPlan = async (topic, style = 'unhinged') => {
   `;
 
   try {
+    // 🔴 CHANGED MODEL TO GEMINI 1.5 FLASH (STABLE)
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -50,7 +51,10 @@ const generateContentPlan = async (topic, style = 'unhinged') => {
     if (!response.ok) throw new Error("Failed to generate plan");
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    return JSON.parse(text);
+    
+    // 🔴 ADDED JSON CLEANING (Fixes "AI Tripped" error)
+    const cleanJson = text.replace(/```json|```/g, '').trim();
+    return JSON.parse(cleanJson);
   } catch (error) {
     console.error("Text Gen Error:", error);
     throw error;
@@ -67,7 +71,7 @@ const regenerateText = async (topic, style) => {
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -85,13 +89,14 @@ const regenerateText = async (topic, style) => {
   }
 };
 
+// 🔴 NEW IMAGE SYSTEM: Uses "LoremFlickr" for Real Photos (Stable & Free)
 const fetchImage = async (searchTerm) => {
-  const safeSearchTerm = searchTerm || "abstract"; 
-  const encodedPrompt = encodeURIComponent(`professional photography, realistic, 4k, ${safeSearchTerm}`);
+  const safeSearchTerm = searchTerm || "tech"; 
   const seed = Math.floor(Math.random() * 100000); 
   
-  // STRICT CONSISTENCY: Same URL for preview and full size
-  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&seed=${seed}&width=1024&height=1024&model=flux`;
+  // Uses LoremFlickr to get real photography based on the keyword.
+  // "lock" ensures the preview image is identical to the shared image.
+  const imageUrl = `https://loremflickr.com/800/600/${encodeURIComponent(safeSearchTerm)}?lock=${seed}`;
 
   return { preview: imageUrl, full: imageUrl };
 };
@@ -159,7 +164,6 @@ export default function App() {
   useEffect(() => {
     const load = async () => {
       try {
-        // Call ready() to hide splash screen
         if (sdk && sdk.actions) { await sdk.actions.ready(); }
       } catch (e) { console.warn("SDK Error", e); }
     };
@@ -225,14 +229,12 @@ export default function App() {
     if (selectedImgIndex !== 3) {
         const imgData = generatedImages[selectedImgIndex];
         if (imgData && imgData.full) {
-            // Attach image as an embed
             composeUrl += `&embeds[]=${encodeURIComponent(imgData.full)}`;
         }
     } else {
         alert("For custom photos, please attach them from your gallery manually in the next step!");
     }
 
-    // Native Mobile Open
     if (sdk && sdk.actions && sdk.actions.openUrl) {
         sdk.actions.openUrl(composeUrl);
     } else {
