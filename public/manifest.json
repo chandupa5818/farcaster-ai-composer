@@ -1,0 +1,20 @@
+{
+  "name": "CastGen AI",
+  "version": "1.0.0",
+  "iconUrl": "https://placehold.co/512x512/purple/white?text=Icon",
+  "homeUrl": "https://example.com",
+  "frame": {
+    "version": "1",
+    "imageUrl": "https://placehold.co/600x400/15171e/white?text=Splash",
+    "button": {
+      "title": "Create AI Post",
+      "action": {
+        "type": "launch_frame",
+        "name": "CastGen AI",
+        "url": "https://example.com",
+        "splashImageUrl": "https://placehold.co/600x400/15171e/white?text=Loading",
+        "splashBackgroundColor": "#15171e"
+      }
+    }
+  }
+}
