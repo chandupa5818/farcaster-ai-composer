@@ -244,23 +244,24 @@ export default function App() {
       setTimeout(() => { setStep("success"); }, 1500); 
   };
 
-  // 🔴 UPDATED FUNCTION: Appends Image URL to Text so it shows in Warpcast
+  // 🔴 FIXED: Uses 'embeds' parameter so image shows up as an attachment
   const openWarpcastComposer = () => {
-    let finalContent = postText;
-    
-    // If it's a generated image (has a URL), append it so Warpcast embeds it
+    const encodedText = encodeURIComponent(postText);
+    let composeUrl = `https://warpcast.com/~/compose?text=${encodedText}`;
+
+    // If it's a generated image (has a URL), add it as an embed
     if (selectedImgIndex !== 3) {
         const imgData = generatedImages[selectedImgIndex];
         if (imgData && imgData.full) {
-            finalContent += `\n\n${imgData.full}`;
+            // Add as an embed parameter
+            composeUrl += `&embeds[]=${encodeURIComponent(imgData.full)}`;
         }
     } else {
         // Custom image warning
         alert("Since you used a custom photo, please attach it from your gallery when Warpcast opens!");
     }
 
-    const encodedText = encodeURIComponent(finalContent);
-    window.open(`https://warpcast.com/~/compose?text=${encodedText}`, '_blank');
+    window.open(composeUrl, '_blank');
   };
 
   const copyTextToClipboard = () => { navigator.clipboard.writeText(postText); alert("Text copied!"); };
