@@ -1,20 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-// 🟢 FOR PRODUCTION: Uncomment the line below after running `npm install @farcaster/frame-sdk`
-// import sdk from '@farcaster/frame-sdk';
-import { Sparkles, Send, RefreshCw, Image as ImageIcon, Edit3, CheckCircle2, XCircle, Share2, Loader2, Camera, Link as LinkIcon, Upload, Wand2, Briefcase, Smile, Zap } from 'lucide-react';
-
-// --- MOCK SDK (For Preview Only) ---
-// 🔴 Remove this const when you uncomment the import above!
-const sdk = {
-  actions: {
-    ready: () => console.log("Farcaster SDK: Ready (Mock Mode)")
-  }
-};
+import sdk from '@farcaster/frame-sdk';
+import { Sparkles, Send, RefreshCw, Image as ImageIcon, Edit3, CheckCircle2, XCircle, Share2, Loader2, Camera, Link as LinkIcon, Upload, Wand2, Briefcase, Smile, Zap, Share } from 'lucide-react';
 
 // --- Configuration ---
 
-// 🔴 STEP 4 IMPORTANT: PASTE YOUR GOOGLE GEMINI API KEY BELOW
-// Get one here: https://aistudio.google.com/app/apikey
+// 🔴 STEP 4 IMPORTANT: YOUR GOOGLE GEMINI API KEY IS BELOW
 const apiKey = "AIzaSyCAVA0hN1rllMq8PP8-CxnF6I9DWDALIRE"; 
 
 // Optional: Add Unsplash key if you have one, otherwise leave empty
@@ -34,9 +24,9 @@ const generateContentPlan = async (topic, style = 'unhinged') => {
 
   const systemPrompt = `
     You are a legendary Farcaster user.
-    
+
     CRITICAL: You MUST write about the specific "Topic" provided by the user.
-    
+
     The user will give you a topic. You need to:
     1. Write a draft post (max 280 chars) DIRECTLY RELATED to the topic.
        - ${styleInstruction}
@@ -44,7 +34,7 @@ const generateContentPlan = async (topic, style = 'unhinged') => {
     2. Create 3 distinct SEARCH KEYWORDS to find photos for this post.
        - These should be simple, visual nouns or short phrases used to search a stock photo site like Unsplash.
        - Example for "coding": ["hacker in dark room", "matrix code", "retro computer"]
-    
+
     Return ONLY valid JSON in this format:
     {
       "postText": "The actual post content...",
@@ -148,7 +138,7 @@ const fetchImage = async (searchTerm) => {
   // Option B: Realistic AI Fallback (Pollinations)
   const encodedPrompt = encodeURIComponent(`professional photography, realistic, 4k, ${searchTerm}`);
   const seed = Math.floor(Math.random() * 1000); 
-  
+
   return {
     preview: `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&seed=${seed}&width=300&height=300&model=flux`,
     full: `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&seed=${seed}&width=1200&height=1200&model=flux`
@@ -247,10 +237,10 @@ export default function App() {
   const [searchTerms, setSearchTerms] = useState([]);
   const [isRegeneratingText, setIsRegeneratingText] = useState(false);
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  
+
   const [generatedImages, setGeneratedImages] = useState([null, null, null]);
   const [customImage, setCustomImage] = useState(null); 
-  
+
   const [selectedImgIndex, setSelectedImgIndex] = useState(0); 
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
@@ -274,22 +264,22 @@ export default function App() {
 
   const handleGenerate = async () => {
     if (!topic.trim()) return;
-    
+
     setStep("generating");
     setError("");
     setLoadingStatus("Brewing some nonsense...");
-    
+
     try {
       const plan = await generateContentPlan(topic, selectedStyle);
       setPostText(plan.postText);
       setSearchTerms(plan.searchTerms || ["random", "abstract", "digital"]); 
-      
+
       setLoadingStatus(UNSPLASH_ACCESS_KEY ? "Searching Unsplash..." : "Developing previews...");
 
       const termsToFetch = plan.searchTerms.slice(0, 3);
       const imagePromises = termsToFetch.map(term => fetchImage(term));
       const images = await Promise.all(imagePromises);
-      
+
       setGeneratedImages(images);
       setStep("preview");
       setSelectedImgIndex(0); 
@@ -302,7 +292,7 @@ export default function App() {
 
   const handleRegenerateText = async (style) => {
     if (!topic || isRegeneratingText) return;
-    
+
     setIsRegeneratingText(true);
     setSelectedStyle(style); 
     try {
@@ -360,6 +350,27 @@ export default function App() {
     }
   };
 
+  // --- NEW: Share Feature ---
+  const handleShareApp = async () => {
+    const shareText = "Check out this AI Post Composer! 🪄";
+    const shareUrl = window.location.href; // URL of your frame
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'CastGen AI',
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      alert("App link copied! Send it to a friend.");
+    }
+  };
+
   const reset = () => {
     setTopic("");
     setPostText("");
@@ -371,7 +382,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#0f1117] text-slate-100 font-sans selection:bg-purple-500/30">
       <div className="max-w-md mx-auto min-h-screen flex flex-col relative bg-[#15171e] shadow-2xl overflow-hidden">
-        
+
         <input 
           type="file" 
           ref={fileInputRef} 
@@ -387,15 +398,22 @@ export default function App() {
             </div>
             <h1 className="font-bold text-lg tracking-tight">CastGen AI</h1>
           </div>
-          {step !== 'input' && (
-            <button onClick={reset} className="p-2 hover:bg-slate-800 rounded-full transition-colors" title="Reset">
-              <RefreshCw className="w-4 h-4 text-slate-400" />
-            </button>
-          )}
+          <div className="flex gap-2">
+            {step === 'input' && (
+              <button onClick={handleShareApp} className="p-2 hover:bg-slate-800 rounded-full transition-colors" title="Share App">
+                <Share className="w-4 h-4 text-slate-400" />
+              </button>
+            )}
+            {step !== 'input' && (
+              <button onClick={reset} className="p-2 hover:bg-slate-800 rounded-full transition-colors" title="Reset">
+                <RefreshCw className="w-4 h-4 text-slate-400" />
+              </button>
+            )}
+          </div>
         </header>
 
         <main className="flex-1 p-6 flex flex-col relative">
-          
+
           {step === 'input' && (
             <div className="flex flex-col h-full justify-center animate-in slide-in-from-bottom-4 duration-500">
               <div className="mb-6 text-center space-y-2">
@@ -476,13 +494,13 @@ export default function App() {
 
           {step === 'preview' && (
             <div className="flex flex-col space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
-              
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm text-slate-400 px-1">
                   <span className="flex items-center gap-1"><Edit3 className="w-3 h-3" /> Remix Caption</span>
                   <span>{postText.length}/320</span>
                 </div>
-                
+
                 <div className="relative">
                   <textarea
                     value={postText}
@@ -527,7 +545,7 @@ export default function App() {
                   <Camera className="w-3 h-3" />
                   <span>Select a Vibe (or upload own)</span>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   {generatedImages.map((imgData, idx) => (
                     <ImageOption
@@ -540,7 +558,7 @@ export default function App() {
                       isCustom={false}
                     />
                   ))}
-                  
+
                   <ImageOption
                     key="custom"
                     imgData={customImage}
@@ -586,7 +604,7 @@ export default function App() {
                   <p className="text-slate-400 max-w-xs">
                     Content ready. Open Warpcast to unleash it.
                   </p>
-                  
+
                   <div className="flex flex-col w-full gap-3 mt-8">
                     <button 
                       onClick={openWarpcastComposer}
