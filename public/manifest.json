@@ -2,7 +2,7 @@
   "name": "CastGen AI",
   "version": "1.0.0",
   "iconUrl": "https://placehold.co/512x512/purple/white?text=Icon",
-  "homeUrl": "https://example.com",
+  "homeUrl": "https://farcaster-ai-composer.vercel.app/",
   "frame": {
     "version": "1",
     "imageUrl": "https://placehold.co/600x400/15171e/white?text=Splash",
